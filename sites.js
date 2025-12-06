@@ -71,5 +71,29 @@ module.exports = [
     buttonSelector: 'button[data-testid="send-button"]',
     submitType: 'click',
     messageSelector: '[class*="message"], [data-message-author-role="assistant"]',
+  },
+  {
+    name: 'Claude (需科学上网)',
+    url: 'https://claude.ai/',
+    inputSelector: 'div[contenteditable="true"], textarea',
+    buttonSelector: 'button[aria-label="Send Message"]',
+    submitType: 'click',
+    messageSelector: '[class*="message"], [class*="Message"], [class*="response"]',
+  },
+  {
+    name: 'Grok (需科学上网)',
+    url: 'https://grok.com/',
+    inputSelector: 'textarea, div[contenteditable="true"]',
+    buttonSelector: 'button[type="submit"]',
+    submitType: 'click',
+    messageSelector: '[class*="message"], [class*="Message"], [class*="response"]',
+  },
+  {
+    name: 'MiniMax 海螺',
+    url: 'https://agent.minimaxi.com/',
+    inputSelector: 'textarea, div[contenteditable="true"]',
+    buttonSelector: 'button[class*="send"]',
+    submitType: 'click',
+    messageSelector: '[class*="message"], [class*="Message"], [class*="bubble"]',
   }
 ];

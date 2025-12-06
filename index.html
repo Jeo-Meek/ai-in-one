@@ -9,27 +9,47 @@
 </head>
 
 <body>
-    <div class="container">
-        <div id="webview-grid" class="webview-grid">
-            <!-- Webviews will be injected here by renderer.js -->
+    <!-- 隐藏的 webview 容器（后台运行） -->
+    <div id="webview-container" class="webview-container"></div>
+
+    <!-- 悬浮球 -->
+    <div id="floating-ball" class="floating-ball" title="点击展开 AI 助手">
+        <span class="ball-icon">🤖</span>
+    </div>
+
+    <!-- 悬浮面板 -->
+    <div id="floating-panel" class="floating-panel">
+        <div class="panel-header" id="drag-region">
+            <span class="panel-title">AI IN ONE</span>
+            <button id="panel-close-btn" class="panel-close-btn" title="收起">✕</button>
+        </div>
+        
+        <!-- 输入区域 -->
+        <div class="panel-input-area">
+            <textarea id="main-input" class="main-input" placeholder="输入问题，按回车发送到选中的 AI..."></textarea>
+            <button id="send-btn" class="send-btn" title="发送">
+                <span class="send-icon">➤</span>
+            </button>
+        </div>
+        
+        <!-- PK 按钮 -->
+        <div class="pk-button-area">
+            <button id="pk-btn" class="pk-btn" title="对比各 AI 的回答">
+                <span>⚔️</span> PK 对比
+            </button>
         </div>
 
-        <div class="control-panel">
-            <!-- 模型选择区域 -->
-            <div class="selector-row">
-                <div id="model-selector" class="model-selector">
-                    <!-- Checkboxes will be injected here -->
-                </div>
-                <!-- 布局切换按钮（只在4个模型时显示） -->
-                <div id="layout-toggle" class="layout-toggle" style="display: none;">
-                    <button id="layout-btn" class="layout-btn" title="切换布局：平铺/四宫格">📐</button>
+        <!-- AI 服务商列表 -->
+        <div class="panel-section">
+            <div class="section-header">
+                <span class="section-title">选择 AI 服务商</span>
+                <div class="section-actions">
+                    <button id="select-all-btn" class="action-btn" title="全选">全选</button>
+                    <button id="deselect-all-btn" class="action-btn" title="取消全选">清空</button>
                 </div>
             </div>
-
-            <!-- 输入区域 -->
-            <div class="input-area">
-                <textarea id="main-input" class="main-input" placeholder="输入问题，按回车发送 (Shift+Enter 换行)..."></textarea>
-                <button id="send-btn" class="send-btn">发送</button>
+            <div id="ai-list" class="ai-list">
+                <!-- AI items will be injected here -->
             </div>
         </div>
     </div>

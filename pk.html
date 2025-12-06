@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PK 对比</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Segoe UI', -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
+            color: white;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 头部 */
+        .pk-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 24px;
+            background: rgba(0, 0, 0, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            -webkit-app-region: drag;
+        }
+
+        .pk-header button {
+            -webkit-app-region: no-drag;
+        }
+
+        .pk-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pk-title::before {
+            content: '⚔️';
+            font-size: 20px;
+        }
+
+        .close-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* 问题显示 */
+        .question-bar {
+            padding: 16px 24px;
+            background: rgba(139, 92, 246, 0.15);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .question-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .question-text {
+            font-size: 15px;
+            color: white;
+            line-height: 1.5;
+        }
+
+        /* 卡片容器 */
+        .cards-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            padding: 24px;
+        }
+
+        .cards-wrapper {
+            display: flex;
+            transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            height: 100%;
+            gap: 24px;
+        }
+
+        /* 单个卡片 */
+        .ai-card {
+            flex: 0 0 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .card-ai-name {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-ai-name::before {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #8b5cf6;
+        }
+
+        .card-score {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-display {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .score-display .up {
+            color: #10b981;
+        }
+
+        .score-display .down {
+            color: #ef4444;
+        }
+
+        .card-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .card-content::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .card-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .loading-text {
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+        }
+
+        /* 底部控制栏 */
+        .pk-footer {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* 导航指示器 */
+        .nav-indicators {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .nav-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-dot.active {
+            background: #8b5cf6;
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        /* 评分按钮 */
+        .rating-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .rate-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .rate-btn.up {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .rate-btn.up:hover {
+            background: rgba(16, 185, 129, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .rate-btn.down {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .rate-btn.down:hover {
+            background: rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .rate-btn.voted {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        /* 转发按钮 */
+        .forward-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            border-radius: 12px;
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .forward-btn:hover {
+            background: rgba(139, 92, 246, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* 导航箭头 */
+        .nav-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .nav-arrow:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .nav-arrow:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .nav-arrow.prev {
+            left: 12px;
+        }
+
+        .nav-arrow.next {
+            right: 12px;
+        }
+
+        /* 空状态 */
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="pk-header">
+        <div class="pk-title">AI 回答对比</div>
+        <button class="close-btn" id="close-btn">✕</button>
+    </div>
+
+    <div class="question-bar">
+        <div class="question-label">当前问题</div>
+        <div class="question-text" id="question-text">加载中...</div>
+    </div>
+
+    <div class="cards-container" id="cards-container">
+        <button class="nav-arrow prev" id="prev-btn">‹</button>
+        <button class="nav-arrow next" id="next-btn">›</button>
+        <div class="cards-wrapper" id="cards-wrapper">
+            <!-- 卡片将通过 JS 动态生成 -->
+        </div>
+    </div>
+
+    <div class="pk-footer">
+        <div class="nav-indicators" id="nav-indicators"></div>
+        <div class="rating-buttons">
+            <button class="rate-btn up" id="rate-up">👍 好评</button>
+            <button class="forward-btn" id="forward-btn">📤 转发到其他AI</button>
+            <button class="rate-btn down" id="rate-down">👎 差评</button>
+        </div>
+    </div>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const remote = require('@electron/remote');
+
+        let currentIndex = 0;
+        let aiCards = [];
+        let ratings = {}; // { aiName: { up: 0, down: 0, voted: false } }
+
+        const cardsWrapper = document.getElementById('cards-wrapper');
+        const navIndicators = document.getElementById('nav-indicators');
+        const questionText = document.getElementById('question-text');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const rateUpBtn = document.getElementById('rate-up');
+        const rateDownBtn = document.getElementById('rate-down');
+        const forwardBtn = document.getElementById('forward-btn');
+        const closeBtn = document.getElementById('close-btn');
+
+        // 获取 URL 参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const question = urlParams.get('question') || '未知问题';
+        const aiListParam = urlParams.get('aiList') || '[]';
+
+        questionText.textContent = question;
+
+        try {
+            aiCards = JSON.parse(decodeURIComponent(aiListParam));
+        } catch (e) {
+            aiCards = [];
+        }
+
+        // 初始化评分
+        aiCards.forEach(ai => {
+            ratings[ai.name] = { up: 0, down: 0, voted: false };
+        });
+
+        // 渲染卡片
+        function renderCards() {
+            if (aiCards.length === 0) {
+                cardsWrapper.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🤔</div>
+                        <div>没有可对比的 AI 回答</div>
+                    </div>
+                `;
+                return;
+            }
+
+            cardsWrapper.innerHTML = aiCards.map((ai, index) => `
+                <div class="ai-card" data-index="${index}">
+                    <div class="card-header">
+                        <div class="card-ai-name">${ai.name}</div>
+                        <div class="card-score">
+                            <span class="score-display">
+                                <span class="up">👍 ${ratings[ai.name].up}</span>
+                                <span class="down">👎 ${ratings[ai.name].down}</span>
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-content" id="content-${index}">
+                        <span class="loading-text">正在获取回答...</span>
+                    </div>
+                </div>
+            `).join('');
+
+            // 渲染导航点
+            navIndicators.innerHTML = aiCards.map((_, index) => `
+                <div class="nav-dot ${index === 0 ? 'active' : ''}" data-index="${index}"></div>
+            `).join('');
+
+            // 绑定导航点点击
+            navIndicators.querySelectorAll('.nav-dot').forEach(dot => {
+                dot.addEventListener('click', () => {
+                    goToCard(parseInt(dot.dataset.index));
+                });
+            });
+
+            updateNavButtons();
+        }
+
+        // 切换卡片
+        function goToCard(index) {
+            if (index < 0 || index >= aiCards.length) return;
+            currentIndex = index;
+            cardsWrapper.style.transform = `translateX(-${index * (100 + 2.4)}%)`;
+            
+            // 更新导航点
+            navIndicators.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+
+            updateNavButtons();
+            updateRatingButtons();
+        }
+
+        function updateNavButtons() {
+            prevBtn.disabled = currentIndex === 0;
+            nextBtn.disabled = currentIndex === aiCards.length - 1;
+        }
+
+        function updateRatingButtons() {
+            const currentAI = aiCards[currentIndex];
+            if (!currentAI) return;
+
+            const rating = ratings[currentAI.name];
+            rateUpBtn.classList.toggle('voted', rating.voted);
+            rateDownBtn.classList.toggle('voted', rating.voted);
+        }
+
+        // 评分
+        function rate(type) {
+            const currentAI = aiCards[currentIndex];
+            if (!currentAI || ratings[currentAI.name].voted) return;
+
+            ratings[currentAI.name][type]++;
+            ratings[currentAI.name].voted = true;
+
+            // 更新显示
+            const card = cardsWrapper.querySelector(`[data-index="${currentIndex}"]`);
+            const scoreDisplay = card.querySelector('.score-display');
+            scoreDisplay.innerHTML = `
+                <span class="up">👍 ${ratings[currentAI.name].up}</span>
+                <span class="down">👎 ${ratings[currentAI.name].down}</span>
+            `;
+
+            updateRatingButtons();
+        }
+
+        // 转发功能
+        function forwardAnswer() {
+            const currentAI = aiCards[currentIndex];
+            if (!currentAI) return;
+
+            const content = document.getElementById(`content-${currentIndex}`).innerText;
+            
+            // 发送到主窗口处理
+            ipcRenderer.send('forward-answer', {
+                fromAI: currentAI.name,
+                content: content,
+                question: question
+            });
+        }
+
+        // 更新卡片内容
+        function updateCardContent(aiName, content) {
+            const index = aiCards.findIndex(ai => ai.name === aiName);
+            if (index === -1) return;
+
+            const contentEl = document.getElementById(`content-${index}`);
+            if (contentEl) {
+                contentEl.innerHTML = content || '<span class="loading-text">暂无回答</span>';
+            }
+        }
+
+        // 事件绑定
+        prevBtn.addEventListener('click', () => goToCard(currentIndex - 1));
+        nextBtn.addEventListener('click', () => goToCard(currentIndex + 1));
+        rateUpBtn.addEventListener('click', () => rate('up'));
+        rateDownBtn.addEventListener('click', () => rate('down'));
+        forwardBtn.addEventListener('click', forwardAnswer);
+        closeBtn.addEventListener('click', () => {
+            remote.getCurrentWindow().close();
+        });
+
+        // 键盘导航
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') goToCard(currentIndex - 1);
+            if (e.key === 'ArrowRight') goToCard(currentIndex + 1);
+            if (e.key === 'Escape') remote.getCurrentWindow().close();
+        });
+
+        // 触摸滑动支持
+        let touchStartX = 0;
+        const container = document.getElementById('cards-container');
+        
+        container.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+        });
+
+        container.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const diff = touchStartX - touchEndX;
+            
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) {
+                    goToCard(currentIndex + 1);
+                } else {
+                    goToCard(currentIndex - 1);
+                }
+            }
+        });
+
+        // 接收内容更新
+        ipcRenderer.on('update-pk-content', (event, { aiName, content }) => {
+            updateCardContent(aiName, content);
+        });
+
+        // 初始化
+        renderCards();
+
+        // 请求获取各 AI 的回答
+        ipcRenderer.send('request-pk-contents', { 
+            aiList: aiCards.map(ai => ai.name),
+            question: question 
+        });
+    </script>
+</body>
+</html>
